@@ -1,7 +1,18 @@
-from flask import Flask, render_template, url_for, request
+from flask import Flask, render_template, url_for, request,redirect
 import csv
+from flask_mail import Mail, Message
 
 app = Flask(__name__)
+mail = Mail(app)
+
+# configuration of mail
+app.config['MAIL_SERVER']='smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = 'sonuu021@gmail.com'
+app.config['MAIL_PASSWORD'] = 'ouvkgfhvldfqlozm'
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+mail = Mail(app)
 
 
 @app.route('/')
@@ -16,6 +27,7 @@ def submit_form():
             print(data)
             write_to_csv(data)
             return render_template('thank_you.html')
+
         except:
             return 'Did not save to database!'
     else:
@@ -31,14 +43,19 @@ def write_to_csv(data):
         email = data['Email']
         subject = data['Subject']
         message = data['Message']
-        #fieldnames = ['Name', 'Email','Subject','Message']
-        #writer = csv.DictWriter(database, fieldnames=fieldnames)
 
-        #writer.writeheader()
         file = csv.writer(database, delimiter=',',quotechar='|', quoting=csv.QUOTE_MINIMAL)
         file.writerow([name,email,subject,message])
-
-
+        msg = Message(
+            'Hello',
+            sender='sonuu021@gmail.com',
+            recipients=['sonuu021@gmail.com']
+        )
+        mail = Mail(app)
+        msg.body = f'Sender name:{name}\nSender email address:{email}\nMail subject:{subject}\nMessage:{message}'
+        print(msg)
+        mail.send(msg)
+    return 'Sent'
 
 
 if __name__ == '__main__':
